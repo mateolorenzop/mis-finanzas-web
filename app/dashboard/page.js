@@ -118,4 +118,8 @@ export default function Dashboard() {
             </span>
           </li>
         ))}
-        {movimientos.length === 0 && <p style={{
+        {movimientos.length === 0 && <p style={{ color: "#93A99B", fontSize: 13 }}>Todavía no cargaste nada. Probá agregar algo arriba, o desde el Atajo del iPhone.</p>}
+      </ul>
+    </div>
+  );
+}
