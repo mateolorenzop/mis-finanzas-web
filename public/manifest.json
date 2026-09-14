@@ -1,0 +1,19 @@
+{
+  "name": "Mis finanzas",
+  "short_name": "Finanzas",
+  "description": "Ingresos y gastos personales",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#132019",
+  "theme_color": "#132019",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
