@@ -17,7 +17,7 @@ function arcPath(cx, cy, r, startAngle, endAngle) {
 // items: [{ name, value, color }]
 export default function PieChart({ items, size = 220 }) {
   const [selected, setSelected] = useState(null);
-  const data = (items || []).filter((i) => Number(i.value) > 0);
+  const data = (items || []).filter((i) => Number(i.value) > 0).sort((a, b) => Number(b.value) - Number(a.value));
   const total = data.reduce((s, i) => s + Number(i.value), 0);
 
   if (data.length === 0 || total <= 0) {
