@@ -69,31 +69,38 @@ export default function GastosFijos() {
                   </span>
                 )}
               </div>
-              <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap", alignItems: "flex-end" }}>
                 <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#93A99B" }}>
                   <input type="checkbox" checked={g.estado === "pagado"} onChange={(e) => actualizar(g.id, { estado: e.target.checked ? "pagado" : "pendiente" })} />
                   Pagado
                 </label>
-                <select value={g.forma || ""} onChange={(e) => actualizar(g.id, { forma: e.target.value })} style={{ ...inputStyle, width: "auto", marginBottom: 0, fontSize: 12, padding: 6 }}>
-                  <option value="">Forma de pago</option>
-                  {FORMAS_PAGO.map((f) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
-                <input
-                  type="date"
-                  value={g.vencimiento || ""}
-                  onChange={(e) => actualizar(g.id, { vencimiento: e.target.value || null })}
-                  style={{ ...inputStyle, width: "auto", marginBottom: 0, fontSize: 12, padding: 6 }}
-                  title="Vencimiento"
-                />
-                <input
-                  type="month"
-                  value={g.periodo ? g.periodo.slice(0, 7) : ""}
-                  onChange={(e) => actualizar(g.id, { periodo: e.target.value ? e.target.value + "-01" : null })}
-                  style={{ ...inputStyle, width: "auto", marginBottom: 0, fontSize: 12, padding: 6 }}
-                  title="Período del gasto"
-                />
+                <div>
+                  <div style={{ fontSize: 10, color: "#93A99B", marginBottom: 2 }}>Forma de pago</div>
+                  <select value={g.forma || ""} onChange={(e) => actualizar(g.id, { forma: e.target.value })} style={{ ...inputStyle, width: "auto", marginBottom: 0, fontSize: 12, padding: 6 }}>
+                    <option value="">Forma de pago</option>
+                    {FORMAS_PAGO.map((f) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "#93A99B", marginBottom: 2 }}>Vencimiento</div>
+                  <input
+                    type="date"
+                    value={g.vencimiento || ""}
+                    onChange={(e) => actualizar(g.id, { vencimiento: e.target.value || null })}
+                    style={{ ...inputStyle, width: "auto", marginBottom: 0, fontSize: 12, padding: 6 }}
+                  />
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: "#93A99B", marginBottom: 2 }}>Período al que corresponde</div>
+                  <input
+                    type="month"
+                    value={g.periodo ? g.periodo.slice(0, 7) : ""}
+                    onChange={(e) => actualizar(g.id, { periodo: e.target.value ? e.target.value + "-01" : null })}
+                    style={{ ...inputStyle, width: "auto", marginBottom: 0, fontSize: 12, padding: 6 }}
+                  />
+                </div>
               </div>
             </li>
           );
@@ -115,22 +122,34 @@ function NuevoGastoFijo({ onAgregar }) {
   const [concepto, setConcepto] = useState("");
   const [valor, setValor] = useState(0);
   const [vencimiento, setVencimiento] = useState("");
+  const [periodo, setPeriodo] = useState("");
   const [forma, setForma] = useState("Débito automático");
 
   function submit(e) {
     e.preventDefault();
     if (!concepto) return;
-    onAgregar({ concepto, valor: Number(valor), vencimiento: vencimiento || null, forma, estado: "pendiente" });
+    onAgregar({
+      concepto,
+      valor: Number(valor),
+      vencimiento: vencimiento || null,
+      periodo: periodo ? periodo + "-01" : null,
+      forma,
+      estado: "pendiente",
+    });
     setConcepto("");
     setValor(0);
     setVencimiento("");
+    setPeriodo("");
   }
 
   return (
     <form onSubmit={submit} style={{ background: "#182B22", border: "1px solid #2B4137", borderRadius: 6, padding: 12, marginBottom: 16 }}>
       <input placeholder="Concepto" value={concepto} onChange={(e) => setConcepto(e.target.value)} required style={inputStyle} />
       <MoneyInput value={valor} onChange={setValor} placeholder="Valor" />
+      <div style={{ fontSize: 11, color: "#93A99B", marginBottom: 2 }}>Vencimiento</div>
       <input type="date" value={vencimiento} onChange={(e) => setVencimiento(e.target.value)} style={inputStyle} />
+      <div style={{ fontSize: 11, color: "#93A99B", marginBottom: 2 }}>Período al que corresponde (opcional)</div>
+      <input type="month" value={periodo} onChange={(e) => setPeriodo(e.target.value)} style={inputStyle} />
       <select value={forma} onChange={(e) => setForma(e.target.value)} style={inputStyle}>
         {FORMAS_PAGO.map((f) => (
           <option key={f} value={f}>{f}</option>
