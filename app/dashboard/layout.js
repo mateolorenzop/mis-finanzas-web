@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 import { MesContext } from "../../lib/MesContext";
-import { fetchMeses, fetchMesCompleto, crearMes, crearMesSiguiente, calcularTotales } from "../../lib/mes";
+import { fetchMeses, fetchMesCompleto, crearMes, crearMesSiguiente, calcularTotales, eliminarMes } from "../../lib/mes";
 import { formatoCorto, periodoActual } from "../../lib/periodo";
 
 const TABS = [
@@ -34,6 +34,7 @@ export default function DashboardLayout({ children }) {
   const [mesId, setMesId] = useState(null);
   const [datos, setDatos] = useState(DATOS_VACIOS);
   const [loading, setLoading] = useState(true);
+  const [confirmandoBorrar, setConfirmandoBorrar] = useState(false);
 
   const recargarMeses = useCallback(async (preferirId) => {
     const lista = await fetchMeses();
@@ -90,6 +91,17 @@ export default function DashboardLayout({ children }) {
     await recargarMeses(nuevo.id);
   }
 
+  async function borrarMesActual() {
+    if (!mesId) return;
+    try {
+      await eliminarMes(mesId);
+      setConfirmandoBorrar(false);
+      await recargarMeses();
+    } catch (e) {
+      alert("No se pudo borrar el mes: " + e.message);
+    }
+  }
+
   async function cerrarSesion() {
     await supabase.auth.signOut();
     router.push("/login");
@@ -133,6 +145,22 @@ export default function DashboardLayout({ children }) {
                   </option>
                 ))}
               </select>
+            )}
+            {mes && !confirmandoBorrar && (
+              <button
+                onClick={() => setConfirmandoBorrar(true)}
+                title="Borrar este mes"
+                style={{ background: "none", border: "none", color: "#93A99B", cursor: "pointer", fontSize: 13 }}
+              >
+                🗑
+              </button>
+            )}
+            {mes && confirmandoBorrar && (
+              <span style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}>
+                <span style={{ color: "#D2A94C" }}>¿Borrar {formatoCorto(mes.periodo)}?</span>
+                <button onClick={borrarMesActual} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>Sí</button>
+                <button onClick={() => setConfirmandoBorrar(false)} style={{ background: "none", border: "none", color: "#93A99B", cursor: "pointer" }}>No</button>
+              </span>
             )}
             <Link href="/dashboard/instalar" style={{ color: "#93A99B", fontSize: 12, textDecoration: "underline" }}>
               Instalar app
