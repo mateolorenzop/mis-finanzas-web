@@ -33,9 +33,13 @@ export default function Historial() {
   }, [meses]);
 
   async function confirmarEliminar(mesId) {
-    await eliminarMes(mesId);
-    setAEliminar(null);
-    await recargarMeses();
+    try {
+      await eliminarMes(mesId);
+      setAEliminar(null);
+      await recargarMeses();
+    } catch (e) {
+      alert("No se pudo borrar el mes: " + e.message);
+    }
   }
 
   if (cargando) return <p style={{ color: "#93A99B", fontSize: 13 }}>Cargando historial...</p>;
