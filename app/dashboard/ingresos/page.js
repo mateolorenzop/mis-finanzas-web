@@ -14,9 +14,12 @@ export default function Ingresos() {
   if (!mes) return <p style={{ color: "#93A99B", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
   const periodoHonorarios = formatoLargo(periodoAnterior(mes.periodo));
-  const otrosIngresos = datos.otrosIngresos;
+  const ingresos = [
+    ...datos.otrosIngresos.map((o) => ({ ...o, _origen: "otros_ingresos" })),
+    ...datos.movimientosIngreso.map((m) => ({ ...m, _origen: "movimientos" })),
+  ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
   const cobradoTransferencia =
-    Number(mes.honorarios_transferencia || 0) + otrosIngresos.filter((o) => o.forma === "Transferencia").reduce((s, o) => s + Number(o.monto || 0), 0);
+    Number(mes.honorarios_transferencia || 0) + ingresos.filter((o) => o.forma === "Transferencia").reduce((s, o) => s + Number(o.monto || 0), 0);
   const limite = Number(mes.limite_transferencia || 0);
   const pctLimite = limite > 0 ? Math.min(100, (cobradoTransferencia / limite) * 100) : 0;
   const pasadoLimite = limite > 0 && cobradoTransferencia > limite;
@@ -33,8 +36,9 @@ export default function Ingresos() {
     await recargarDatos();
   }
 
-  async function eliminarOtroIngreso(id) {
-    const { error } = await supabase.from("otros_ingresos").delete().eq("id", id);
+  async function eliminarIngreso(item) {
+    const tabla = item._origen === "movimientos" ? "movimientos" : "otros_ingresos";
+    const { error } = await supabase.from(tabla).delete().eq("id", item.id);
     if (error) { alert(error.message); return; }
     await recargarDatos();
   }
@@ -43,7 +47,7 @@ export default function Ingresos() {
     { name: "Honorarios (efectivo)", value: Number(mes.honorarios_efectivo || 0), color: colorFor("Honorarios (efectivo)") },
     { name: "Honorarios (transferencia)", value: Number(mes.honorarios_transferencia || 0), color: colorFor("Honorarios (transferencia)") },
     { name: "Remanente del mes anterior", value: Number(mes.remanente_anterior || 0), color: colorFor("Remanente del mes anterior") },
-    ...otrosIngresos.map((o) => ({ name: o.concepto || "Otro ingreso", value: Number(o.monto || 0), color: colorFor(o.concepto || o.id) })),
+    ...ingresos.map((o) => ({ name: o.concepto || "Ingreso", value: Number(o.monto || 0), color: colorFor(o.concepto || o.id) })),
   ];
 
   return (
@@ -77,21 +81,24 @@ export default function Ingresos() {
         )}
       </Seccion>
 
-      <Seccion titulo="Otros ingresos">
+      <Seccion titulo="Ingresos">
+        <p style={{ fontSize: 11, color: "#93A99B", marginTop: -4 }}>
+          Acá aparece lo que cargues abajo, y también lo que anotes como &quot;Ingreso&quot; desde el Atajo del iPhone.
+        </p>
         <OtroIngresoForm onAgregar={agregarOtroIngreso} />
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {otrosIngresos.map((o) => (
-            <li key={o.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #2B4137", padding: "8px 0", fontSize: 13 }}>
+          {ingresos.map((o) => (
+            <li key={`${o._origen}-${o.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #2B4137", padding: "8px 0", fontSize: 13 }}>
               <span>
-                {o.concepto} {o.tipo && <small style={{ opacity: 0.6 }}>({o.tipo})</small>} <small style={{ opacity: 0.6 }}>{o.fecha}</small>
+                {o.concepto || o.categoria || "Ingreso"} {o.tipo && <small style={{ opacity: 0.6 }}>({o.tipo})</small>} <small style={{ opacity: 0.6 }}>{o.fecha}</small>
               </span>
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ color: "#7CB88D" }}>{fmtPesos(o.monto)}</span>
-                <button onClick={() => eliminarOtroIngreso(o.id)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
+                <button onClick={() => eliminarIngreso(o)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
               </span>
             </li>
           ))}
-          {otrosIngresos.length === 0 && <p style={{ color: "#93A99B", fontSize: 12 }}>No cargaste otros ingresos este mes.</p>}
+          {ingresos.length === 0 && <p style={{ color: "#93A99B", fontSize: 12 }}>No cargaste ingresos este mes.</p>}
         </ul>
       </Seccion>
 

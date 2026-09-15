@@ -15,8 +15,11 @@ export default function GastosVariables() {
 
   if (!mes) return <p style={{ color: "#93A99B", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
-  const { gastosVariables, tarjetaMotivos } = datos;
-  const normales = gastosVariables.filter((g) => g.categoria !== TARJETA);
+  const { gastosVariables, tarjetaMotivos, movimientosGasto } = datos;
+  const normales = [
+    ...gastosVariables.filter((g) => g.categoria !== TARJETA).map((g) => ({ ...g, _origen: "gastos_variables" })),
+    ...movimientosGasto.map((m) => ({ ...m, _origen: "movimientos" })),
+  ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
   const tarjetas = gastosVariables.filter((g) => g.categoria === TARJETA);
 
   async function agregarNormal(item) {
@@ -25,8 +28,9 @@ export default function GastosVariables() {
     await recargarDatos();
   }
 
-  async function eliminarNormal(id) {
-    const { error } = await supabase.from("gastos_variables").delete().eq("id", id);
+  async function eliminarNormal(item) {
+    const tabla = item._origen === "movimientos" ? "movimientos" : "gastos_variables";
+    const { error } = await supabase.from(tabla).delete().eq("id", item.id);
     if (error) { alert(error.message); return; }
     await recargarDatos();
   }
@@ -74,6 +78,10 @@ export default function GastosVariables() {
     const t = varItemTotal(g, tarjetaMotivos);
     totalesPorCategoria[g.categoria] = (totalesPorCategoria[g.categoria] || 0) + t;
   }
+  for (const m of movimientosGasto) {
+    const cat = m.categoria || "Otro";
+    totalesPorCategoria[cat] = (totalesPorCategoria[cat] || 0) + Number(m.monto || 0);
+  }
   const pieItems = Object.entries(totalesPorCategoria).map(([categoria, value]) => ({
     name: categoria,
     value,
@@ -82,21 +90,25 @@ export default function GastosVariables() {
 
   return (
     <div>
+      <p style={{ fontSize: 11, color: "#93A99B", marginTop: -4 }}>
+        Acá aparece lo que cargues abajo, y también lo que anotes como &quot;Gasto&quot; desde el Atajo del iPhone.
+      </p>
       <NuevoGastoVariable onAgregarNormal={agregarNormal} onAgregarMotivo={agregarMotivo} />
 
       <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 12 }}>
         {normales.map((g) => (
-          <li key={g.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #2B4137", padding: "8px 0", fontSize: 13 }}>
+          <li key={`${g._origen}-${g.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #2B4137", padding: "8px 0", fontSize: 13 }}>
             <span>
-              <span style={{ color: colorFor(g.categoria) }}>●</span> {g.categoria} {g.concepto && <small style={{ opacity: 0.7 }}>— {g.concepto}</small>}{" "}
+              <span style={{ color: colorFor(g.categoria) }}>●</span> {g.categoria || "Sin categoría"} {g.concepto && <small style={{ opacity: 0.7 }}>— {g.concepto}</small>}{" "}
               <small style={{ opacity: 0.6 }}>{g.fecha}</small>
             </span>
             <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <span style={{ color: "#C97B6B" }}>{fmtPesos(g.monto)}</span>
-              <button onClick={() => eliminarNormal(g.id)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
+              <button onClick={() => eliminarNormal(g)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
             </span>
           </li>
         ))}
+        {normales.length === 0 && <p style={{ color: "#93A99B", fontSize: 12 }}>No cargaste gastos variables este mes.</p>}
       </ul>
 
       {tarjetas.length > 0 && (

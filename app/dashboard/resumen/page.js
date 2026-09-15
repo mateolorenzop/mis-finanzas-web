@@ -14,11 +14,15 @@ export default function Resumen() {
 
   if (!mes) return <p style={{ color: "#93A99B", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
-  const { gastosFijos, gastosVariables, tarjetaMotivos } = datos;
+  const { gastosFijos, gastosVariables, tarjetaMotivos, movimientosGasto } = datos;
 
   const totalesPorCategoria = {};
   for (const g of gastosVariables) {
     totalesPorCategoria[g.categoria] = (totalesPorCategoria[g.categoria] || 0) + varItemTotal(g, tarjetaMotivos);
+  }
+  for (const m of movimientosGasto) {
+    const cat = m.categoria || "Otro";
+    totalesPorCategoria[cat] = (totalesPorCategoria[cat] || 0) + Number(m.monto || 0);
   }
 
   const pieItems = [

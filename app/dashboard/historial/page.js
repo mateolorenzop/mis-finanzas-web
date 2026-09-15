@@ -17,7 +17,7 @@ export default function Historial() {
     setCargando(true);
     Promise.all(
       meses.map(async (m) => {
-        const datos = await fetchMesCompleto(m.id);
+        const datos = await fetchMesCompleto(m.id, m.periodo);
         const t = calcularTotales(m, datos);
         return { mes: m, totales: t };
       })

@@ -8,7 +8,6 @@ import { fetchMeses, fetchMesCompleto, crearMes, crearMesSiguiente, calcularTota
 import { formatoCorto, periodoActual } from "../../lib/periodo";
 
 const TABS = [
-  { href: "/dashboard", label: "Rápido" },
   { href: "/dashboard/ingresos", label: "Ingresos" },
   { href: "/dashboard/gastos-fijos", label: "Gastos fijos" },
   { href: "/dashboard/gastos-variables", label: "Gastos variables" },
@@ -17,7 +16,15 @@ const TABS = [
   { href: "/dashboard/historial", label: "Historial" },
 ];
 
-const DATOS_VACIOS = { gastosFijos: [], gastosVariables: [], tarjetaMotivos: [], otrosIngresos: [], comprasDolares: [] };
+const DATOS_VACIOS = {
+  gastosFijos: [],
+  gastosVariables: [],
+  tarjetaMotivos: [],
+  otrosIngresos: [],
+  comprasDolares: [],
+  movimientosGasto: [],
+  movimientosIngreso: [],
+};
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -62,9 +69,10 @@ export default function DashboardLayout({ children }) {
       setDatos(DATOS_VACIOS);
       return;
     }
-    const d = await fetchMesCompleto(mesId);
+    const mesActual = meses.find((m) => m.id === mesId);
+    const d = await fetchMesCompleto(mesId, mesActual?.periodo);
     setDatos(d);
-  }, [mesId]);
+  }, [mesId, meses]);
 
   useEffect(() => {
     recargarDatos();
