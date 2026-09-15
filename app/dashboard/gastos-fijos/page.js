@@ -61,8 +61,10 @@ export default function GastosFijos() {
                 <strong style={{ color: "#EFE9DA" }}>{g.concepto}</strong>
                 <button onClick={() => eliminar(g.id)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ color: "#D2A94C" }}>{fmtPesos(g.valor)}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 140 }}>
+                  <MoneyInput value={g.valor} onChange={(v) => actualizar(g.id, { valor: v })} placeholder="Valor" style={{ marginBottom: 0 }} />
+                </div>
                 {pct != null && (
                   <span style={{ color: pct > 0 ? "#C97B6B" : pct < 0 ? "#7CB88D" : "#93A99B", fontSize: 11 }}>
                     {pct > 0 ? "▲" : pct < 0 ? "▼" : "="} {fmtPct(Math.abs(pct))} vs mes anterior
