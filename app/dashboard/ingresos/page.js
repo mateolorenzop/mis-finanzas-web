@@ -5,7 +5,7 @@ import { supabase } from "../../../lib/supabaseClient";
 import MoneyInput, { inputStyle } from "../../../components/MoneyInput";
 import PieChart from "../../../components/PieChart";
 import { fmtPesos } from "../../../lib/format";
-import { colorFor, FORMAS_PAGO_INGRESOS } from "../../../lib/categorias";
+import { colorFor, FORMAS_PAGO_INGRESOS, TIPOS_INGRESO } from "../../../lib/categorias";
 import { periodoAnterior, formatoLargo } from "../../../lib/periodo";
 
 export default function Ingresos() {
@@ -44,10 +44,13 @@ export default function Ingresos() {
   }
 
   const pieItems = [
-    { name: "Honorarios (efectivo)", value: Number(mes.honorarios_efectivo || 0), color: colorFor("Honorarios (efectivo)") },
-    { name: "Honorarios (transferencia)", value: Number(mes.honorarios_transferencia || 0), color: colorFor("Honorarios (transferencia)") },
+    {
+      name: "Honorarios",
+      value: Number(mes.honorarios_efectivo || 0) + Number(mes.honorarios_transferencia || 0),
+      color: colorFor("Honorarios"),
+    },
     { name: "Remanente del mes anterior", value: Number(mes.remanente_anterior || 0), color: colorFor("Remanente del mes anterior") },
-    ...ingresos.map((o) => ({ name: o.concepto || "Ingreso", value: Number(o.monto || 0), color: colorFor(o.concepto || o.id) })),
+    ...ingresos.map((o) => ({ name: o.concepto || o.tipo || "Ingreso", value: Number(o.monto || 0), color: colorFor(o.concepto || o.id) })),
   ];
 
   return (
@@ -93,7 +96,8 @@ export default function Ingresos() {
           {ingresos.map((o) => (
             <li key={`${o._origen}-${o.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
               <span>
-                {o.concepto || o.categoria || "Ingreso"} {o.tipo && <small style={{ opacity: 0.6 }}>({o.tipo})</small>} <small style={{ opacity: 0.6 }}>{o.fecha}</small>
+                {o.concepto || o.tipo || o.categoria || "Ingreso"}{" "}
+                {o.concepto && o.tipo && <small style={{ opacity: 0.6 }}>({o.tipo})</small>} <small style={{ opacity: 0.6 }}>{o.fecha}</small>
               </span>
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ color: "#4FD1A5" }}>{fmtPesos(o.monto)}</span>
@@ -115,7 +119,7 @@ export default function Ingresos() {
 }
 
 function OtroIngresoForm({ onAgregar }) {
-  const [tipo, setTipo] = useState("");
+  const [tipo, setTipo] = useState(TIPOS_INGRESO[0]);
   const [concepto, setConcepto] = useState("");
   const [monto, setMonto] = useState(0);
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
@@ -123,17 +127,20 @@ function OtroIngresoForm({ onAgregar }) {
 
   function submit(e) {
     e.preventDefault();
-    if (!concepto || !monto) return;
-    onAgregar({ tipo, concepto, monto: Number(monto), fecha, forma });
-    setTipo("");
+    if (!monto) return;
+    onAgregar({ tipo, concepto: concepto || "", monto: Number(monto), fecha, forma });
     setConcepto("");
     setMonto(0);
   }
 
   return (
     <form onSubmit={submit} style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 12, marginBottom: 12 }}>
-      <input placeholder="Tipo (opcional)" value={tipo} onChange={(e) => setTipo(e.target.value)} style={inputStyle} />
-      <input placeholder="Concepto" value={concepto} onChange={(e) => setConcepto(e.target.value)} required style={inputStyle} />
+      <select value={tipo} onChange={(e) => setTipo(e.target.value)} style={inputStyle}>
+        {TIPOS_INGRESO.map((t) => (
+          <option key={t} value={t}>{t}</option>
+        ))}
+      </select>
+      <input placeholder="Concepto (opcional)" value={concepto} onChange={(e) => setConcepto(e.target.value)} style={inputStyle} />
       <MoneyInput value={monto} onChange={setMonto} placeholder="Monto" />
       <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
       <select value={forma} onChange={(e) => setForma(e.target.value)} style={inputStyle}>
