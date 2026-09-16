@@ -5,7 +5,7 @@ import { supabase } from "../../../lib/supabaseClient";
 import MoneyInput, { inputStyle } from "../../../components/MoneyInput";
 import PieChart from "../../../components/PieChart";
 import { fmtPesos } from "../../../lib/format";
-import { colorFor, CATEGORIAS, BANCOS, FORMAS_PAGO } from "../../../lib/categorias";
+import { colorFor, CATEGORIAS, BANCOS, FORMAS_PAGO, BANCOS_CON_RED, REDES_TARJETA } from "../../../lib/categorias";
 import { varItemTotal } from "../../../lib/mes";
 
 const TARJETA = "Tarjeta de crédito";
@@ -35,8 +35,9 @@ export default function GastosVariables() {
     await recargarDatos();
   }
 
-  async function agregarMotivo({ banco, bancoOtro, motivo, valorCuota, cuotaActual, cuotaTotal, fecha, forma }) {
-    const nombreTarjeta = banco === "Otro" ? bancoOtro || "Otro" : banco;
+  async function agregarMotivo({ banco, bancoOtro, red, motivo, valorCuota, cuotaActual, cuotaTotal, fecha, forma }) {
+    const nombreTarjeta =
+      banco === "Otro" ? bancoOtro || "Otro" : BANCOS_CON_RED.includes(banco) ? `${banco} (${red})` : banco;
     let item = tarjetas.find((t) => (t.concepto || "") === nombreTarjeta);
     let itemId = item?.id;
     if (!itemId) {
@@ -159,6 +160,7 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
 
   const [banco, setBanco] = useState(BANCOS[0]);
   const [bancoOtro, setBancoOtro] = useState("");
+  const [red, setRed] = useState(REDES_TARJETA[0]);
   const [motivo, setMotivo] = useState("");
   const [valorCuota, setValorCuota] = useState(0);
   const [cuotaActual, setCuotaActual] = useState(1);
@@ -177,7 +179,7 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
   function submitMotivo(e) {
     e.preventDefault();
     if (!motivo || !valorCuota) return;
-    onAgregarMotivo({ banco, bancoOtro, motivo, valorCuota, cuotaActual, cuotaTotal, fecha, forma });
+    onAgregarMotivo({ banco, bancoOtro, red, motivo, valorCuota, cuotaActual, cuotaTotal, fecha, forma });
     setMotivo("");
     setValorCuota(0);
     setCuotaActual(1);
@@ -215,6 +217,13 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
           </select>
           {banco === "Otro" && (
             <input placeholder="Nombre de la tarjeta" value={bancoOtro} onChange={(e) => setBancoOtro(e.target.value)} style={inputStyle} />
+          )}
+          {BANCOS_CON_RED.includes(banco) && (
+            <select value={red} onChange={(e) => setRed(e.target.value)} style={inputStyle}>
+              {REDES_TARJETA.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
           )}
           <input placeholder="Motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} style={inputStyle} />
           <button
