@@ -4,7 +4,6 @@ import { useMes } from "../../../lib/MesContext";
 import PieChart from "../../../components/PieChart";
 import { fmtPesos } from "../../../lib/format";
 import { colorFor } from "../../../lib/categorias";
-import { varItemTotal } from "../../../lib/mes";
 import { formatoLargo, periodoSiguiente } from "../../../lib/periodo";
 
 export default function Resumen() {
@@ -14,20 +13,11 @@ export default function Resumen() {
 
   if (!mes) return <p style={{ color: "#8C9EC9", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
-  const { gastosFijos, gastosVariables, tarjetaMotivos, movimientosGasto } = datos;
-
-  const totalesPorCategoria = {};
-  for (const g of gastosVariables) {
-    totalesPorCategoria[g.categoria] = (totalesPorCategoria[g.categoria] || 0) + varItemTotal(g, tarjetaMotivos);
-  }
-  for (const m of movimientosGasto) {
-    const cat = m.categoria || "Otro";
-    totalesPorCategoria[cat] = (totalesPorCategoria[cat] || 0) + Number(m.monto || 0);
-  }
+  const { gastosFijos } = datos;
 
   const pieItems = [
     ...gastosFijos.map((g) => ({ name: g.concepto, value: Number(g.valor || 0), color: colorFor(g.concepto) })),
-    ...Object.entries(totalesPorCategoria).map(([categoria, value]) => ({ name: categoria, value, color: colorFor(categoria) })),
+    { name: "Gastos variables", value: totales.totalGastosVariables, color: colorFor("Gastos variables") },
     { name: "Ahorro en dólares", value: totales.totalDolaresPesos, color: colorFor("Ahorro en dólares") },
     { name: "Remanente", value: Math.max(0, totales.remanente), color: colorFor("Remanente") },
   ];
