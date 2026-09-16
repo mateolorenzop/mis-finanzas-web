@@ -5,7 +5,7 @@ import { supabase } from "../../../lib/supabaseClient";
 import MoneyInput, { inputStyle } from "../../../components/MoneyInput";
 import PieChart from "../../../components/PieChart";
 import { fmtPesos } from "../../../lib/format";
-import { colorFor, FORMAS_PAGO } from "../../../lib/categorias";
+import { colorFor, FORMAS_PAGO_INGRESOS } from "../../../lib/categorias";
 import { periodoAnterior, formatoLargo } from "../../../lib/periodo";
 
 export default function Ingresos() {
@@ -63,8 +63,8 @@ export default function Ingresos() {
       </Seccion>
 
       <Seccion titulo="Remanente del mes anterior">
-        <div style={{ fontSize: 15, color: "#4FD1A5" }}>{fmtPesos(mes.remanente_anterior)}</div>
-        <p style={{ fontSize: 11, color: "#8C9EC9" }}>Este valor se calcula solo cuando creás un mes nuevo desde Resumen.</p>
+        <MoneyInput value={mes.remanente_anterior || 0} onChange={(v) => actualizarMes({ remanente_anterior: v })} placeholder="0" />
+        <p style={{ fontSize: 11, color: "#8C9EC9" }}>Se completa solo cuando creás un mes nuevo desde Resumen, pero podés corregirlo acá.</p>
       </Seccion>
 
       <Seccion titulo="Límite mensual de transferencia">
@@ -137,7 +137,7 @@ function OtroIngresoForm({ onAgregar }) {
       <MoneyInput value={monto} onChange={setMonto} placeholder="Monto" />
       <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
       <select value={forma} onChange={(e) => setForma(e.target.value)} style={inputStyle}>
-        {FORMAS_PAGO.map((f) => (
+        {FORMAS_PAGO_INGRESOS.map((f) => (
           <option key={f} value={f}>{f}</option>
         ))}
       </select>
