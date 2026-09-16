@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { fmtPesos, fmtPct } from "../lib/format";
+import { colorForIndex } from "../lib/categorias";
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const angleRad = ((angleDeg - 90) * Math.PI) / 180;
@@ -26,12 +27,12 @@ export default function PieChart({ items, size = 220 }) {
 
   const r = size / 2;
   let acc = 0;
-  const arcos = data.map((item) => {
+  const arcos = data.map((item, idx) => {
     const pct = (Number(item.value) / total) * 100;
     const startAngle = (acc / total) * 360;
     acc += Number(item.value);
     const endAngle = (acc / total) * 360;
-    return { ...item, pct, startAngle, endAngle };
+    return { ...item, color: colorForIndex(idx), pct, startAngle, endAngle };
   });
 
   const activo = selected != null ? arcos.find((a) => a.name === selected) : null;
