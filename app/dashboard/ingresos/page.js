@@ -74,10 +74,6 @@ export default function Ingresos() {
       <Seccion titulo="Remanente del mes anterior">
         <MoneyInput value={mes.remanente_anterior || 0} onChange={(v) => actualizarMes({ remanente_anterior: v })} placeholder="0" />
         <p style={{ fontSize: 11, color: "#8C9EC9" }}>Se completa solo cuando creás un mes nuevo desde Resumen, pero podés corregirlo acá.</p>
-        <div style={{ fontSize: 13, color: "#4FD1A5", marginTop: 4 }}>
-          Fondos disponibles:{" "}
-          {fmtPesos(Number(mes.honorarios_efectivo || 0) + Number(mes.honorarios_transferencia || 0) + Number(mes.remanente_anterior || 0))}
-        </div>
       </Seccion>
 
       <Seccion titulo="Límite mensual de transferencia">
