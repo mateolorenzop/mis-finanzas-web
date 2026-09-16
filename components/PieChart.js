@@ -18,15 +18,11 @@ function arcPath(cx, cy, r, startAngle, endAngle) {
 // items: [{ name, value, color }]
 // sortByValue: true (default) ordena las porciones de mayor a menor; false
 // respeta el orden en que vienen los items (para agruparlos por categoría).
-// pctBase: si se pasa, los porcentajes se calculan sobre ese total (por
-// ejemplo los ingresos totales) en vez de sobre la suma de los items — las
-// porciones del dibujo siguen siendo proporcionales entre sí.
-export default function PieChart({ items, size = 220, sortByValue = true, pctBase }) {
+export default function PieChart({ items, size = 220, sortByValue = true }) {
   const [selected, setSelected] = useState(null);
   const filtrados = (items || []).filter((i) => Number(i.value) > 0);
   const data = sortByValue ? [...filtrados].sort((a, b) => Number(b.value) - Number(a.value)) : filtrados;
   const total = data.reduce((s, i) => s + Number(i.value), 0);
-  const totalPct = pctBase != null && Number(pctBase) > 0 ? Number(pctBase) : total;
 
   if (data.length === 0 || total <= 0) {
     return <p style={{ color: "#8C9EC9", fontSize: 13 }}>No hay datos todavía para graficar.</p>;
@@ -35,7 +31,7 @@ export default function PieChart({ items, size = 220, sortByValue = true, pctBas
   const r = size / 2;
   let acc = 0;
   const arcos = data.map((item, idx) => {
-    const pct = (Number(item.value) / totalPct) * 100;
+    const pct = (Number(item.value) / total) * 100;
     const startAngle = (acc / total) * 360;
     acc += Number(item.value);
     const endAngle = (acc / total) * 360;
