@@ -4,8 +4,10 @@ import { fmtPesos } from "../lib/format";
 const SERIES = [
   { key: "ingresos", label: "Ingresos", color: "#4FD1A5" },
   { key: "gastos", label: "Gastos", color: "#C97B6B" },
-  { key: "remanente", label: "Remanente", color: "#7DD3FC" },
+  { key: "remanente", label: "Remanente", color: "#A78BFA" },
 ];
+
+const ALTURA = 160;
 
 // filas: [{ periodoLabel, ingresos, gastos, remanente }]
 export default function BarChart({ filas }) {
@@ -19,7 +21,7 @@ export default function BarChart({ filas }) {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 14, marginBottom: 12, fontSize: 12 }}>
+      <div style={{ display: "flex", gap: 14, marginBottom: 14, fontSize: 12 }}>
         {SERIES.map((s) => (
           <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color, display: "inline-block" }} />
@@ -27,22 +29,29 @@ export default function BarChart({ filas }) {
           </div>
         ))}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 20, overflowX: "auto", paddingBottom: 4 }}>
         {filas.map((f) => (
-          <div key={f.periodoLabel}>
-            <div style={{ fontSize: 13, color: "#E7ECF7", marginBottom: 4 }}>{f.periodoLabel}</div>
-            {SERIES.map((s) => {
-              const v = Number(f[s.key] || 0);
-              const widthPct = (Math.abs(v) / max) * 100;
-              return (
-                <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                  <div style={{ flex: 1, background: "#142440", borderRadius: 3, overflow: "hidden", height: 14 }}>
-                    <div style={{ width: `${widthPct}%`, background: s.color, height: "100%" }} />
-                  </div>
-                  <div style={{ width: 90, fontSize: 11, color: "#8C9EC9", textAlign: "right" }}>{fmtPesos(v)}</div>
-                </div>
-              );
-            })}
+          <div key={f.periodoLabel} style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: ALTURA }}>
+              {SERIES.map((s) => {
+                const v = Number(f[s.key] || 0);
+                const heightPct = (Math.abs(v) / max) * 100;
+                return (
+                  <div
+                    key={s.key}
+                    title={`${s.label}: ${fmtPesos(v)}`}
+                    style={{
+                      width: 16,
+                      height: `${heightPct}%`,
+                      minHeight: v !== 0 ? 2 : 0,
+                      background: s.color,
+                      borderRadius: "2px 2px 0 0",
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 11, color: "#8C9EC9", marginTop: 6, whiteSpace: "nowrap" }}>{f.periodoLabel}</div>
           </div>
         ))}
       </div>
