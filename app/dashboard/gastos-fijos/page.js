@@ -20,7 +20,14 @@ export default function GastosFijos() {
 
   if (!mes) return <p style={{ color: "#8C9EC9", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
-  const gastosFijos = datos.gastosFijos;
+  const gastosFijos = [...datos.gastosFijos].sort((a, b) => {
+    const aPagado = a.estado === "pagado";
+    const bPagado = b.estado === "pagado";
+    if (aPagado !== bPagado) return aPagado ? 1 : -1;
+    const av = a.vencimiento || "9999-99-99";
+    const bv = b.vencimiento || "9999-99-99";
+    return av < bv ? -1 : av > bv ? 1 : 0;
+  });
 
   async function agregar(item) {
     const { error } = await supabase.from("gastos_fijos").insert({ ...item, mes_id: mes.id, user_id: mes.user_id });
