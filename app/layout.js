@@ -2,7 +2,7 @@ import RegistrarSW from "../components/RegistrarSW";
 import InstallCapture from "../components/InstallCapture";
 
 export const metadata = {
-  title: "Mis finanzas",
+  title: "FP",
   description: "Ingresos y gastos personales",
   manifest: "/manifest.json",
   icons: {
@@ -12,12 +12,12 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Mis finanzas",
+    title: "FP",
   },
 };
 
 export const viewport = {
-  themeColor: "#132019",
+  themeColor: "#0B1730",
   width: "device-width",
   initialScale: 1,
 };
@@ -25,7 +25,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es">
-      <body style={{ margin: 0, background: "#132019", color: "#EFE9DA", minHeight: "100vh" }}>
+      <body style={{ margin: 0, background: "#0B1730", color: "#E7ECF7", minHeight: "100vh" }}>
         <RegistrarSW />
         <InstallCapture />
         {children}
