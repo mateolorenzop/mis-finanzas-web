@@ -1,17 +1,24 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMes } from "../../../lib/MesContext";
 import { supabase } from "../../../lib/supabaseClient";
 import MoneyInput, { inputStyle } from "../../../components/MoneyInput";
 import PieChart from "../../../components/PieChart";
-import { fmtPesos } from "../../../lib/format";
+import { fmtPesos, fmtPct } from "../../../lib/format";
 import { colorFor, CATEGORIAS, BANCOS, FORMAS_PAGO, BANCOS_CON_RED, REDES_TARJETA } from "../../../lib/categorias";
-import { varItemTotal } from "../../../lib/mes";
+import { varItemTotal, fetchTarjetasPorPeriodo } from "../../../lib/mes";
+import { periodoAnterior } from "../../../lib/periodo";
 
 const TARJETA = "Tarjeta de crédito";
 
 export default function GastosVariables() {
   const { mes, datos, totales, recargarDatos } = useMes();
+  const [tarjetasAnteriores, setTarjetasAnteriores] = useState([]);
+
+  useEffect(() => {
+    if (!mes) return;
+    fetchTarjetasPorPeriodo(mes.user_id, periodoAnterior(mes.periodo)).then(setTarjetasAnteriores).catch(() => setTarjetasAnteriores([]));
+  }, [mes]);
 
   if (!mes) return <p style={{ color: "#8C9EC9", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
@@ -74,6 +81,12 @@ export default function GastosVariables() {
     await recargarDatos();
   }
 
+  function aumentoPctTarjeta(concepto, totalActual) {
+    const previo = tarjetasAnteriores.find((t) => (t.concepto || "").trim().toLowerCase() === (concepto || "").trim().toLowerCase());
+    if (!previo || !previo.total) return null;
+    return ((Number(totalActual) - Number(previo.total)) / Number(previo.total)) * 100;
+  }
+
   const totalesPorCategoria = {};
   for (const g of gastosVariables) {
     const t = varItemTotal(g, tarjetaMotivos);
@@ -118,11 +131,19 @@ export default function GastosVariables() {
           {tarjetas.map((t) => {
             const motivos = tarjetaMotivos.filter((m) => m.gasto_variable_id === t.id);
             const totalTarjeta = motivos.reduce((s, m) => s + Number(m.valor_cuota || 0), 0);
+            const pct = aumentoPctTarjeta(t.concepto, totalTarjeta);
             return (
               <div key={t.id} style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 10, marginBottom: 8 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
                   <strong style={{ color: "#E7ECF7" }}>{t.concepto}</strong>
-                  <span style={{ color: "#C97B6B" }}>{fmtPesos(totalTarjeta)}</span>
+                  <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    {pct != null && (
+                      <span style={{ color: pct > 0 ? "#C97B6B" : pct < 0 ? "#4FD1A5" : "#8C9EC9", fontSize: 11 }}>
+                        {pct > 0 ? "▲" : pct < 0 ? "▼" : "="} {fmtPct(Math.abs(pct))}
+                      </span>
+                    )}
+                    <span style={{ color: "#C97B6B" }}>{fmtPesos(totalTarjeta)}</span>
+                  </span>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, margin: "6px 0 0" }}>
                   {motivos.map((m) => (
