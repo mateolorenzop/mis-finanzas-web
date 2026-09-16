@@ -43,18 +43,11 @@ export default function Ingresos() {
     await recargarDatos();
   }
 
-  function nombreIngreso(o) {
-    if (o.tipo && o.concepto) return `${o.tipo} — ${o.concepto}`;
-    if (o.tipo) return o.tipo;
-    return o.concepto || o.categoria || "Ingreso";
+  const totalesPorTipo = {};
+  for (const o of ingresos) {
+    const clave = TIPOS_INGRESO.includes(o.tipo) ? o.tipo : "Otro";
+    totalesPorTipo[clave] = (totalesPorTipo[clave] || 0) + Number(o.monto || 0);
   }
-
-  function claveOrdenTipo(o) {
-    const idx = TIPOS_INGRESO.indexOf(o.tipo);
-    return idx === -1 ? TIPOS_INGRESO.length : idx;
-  }
-
-  const ingresosOrdenados = [...ingresos].sort((a, b) => claveOrdenTipo(a) - claveOrdenTipo(b));
 
   const pieItems = [
     {
@@ -63,7 +56,7 @@ export default function Ingresos() {
       color: colorFor("Honorarios"),
     },
     { name: "Remanente del mes anterior", value: Number(mes.remanente_anterior || 0), color: colorFor("Remanente del mes anterior") },
-    ...ingresosOrdenados.map((o) => ({ name: nombreIngreso(o), value: Number(o.monto || 0), color: colorFor(nombreIngreso(o)) })),
+    ...TIPOS_INGRESO.map((tipo) => ({ name: tipo, value: totalesPorTipo[tipo] || 0, color: colorFor(tipo) })),
   ];
 
   return (
@@ -109,8 +102,15 @@ export default function Ingresos() {
           {ingresos.map((o) => (
             <li key={`${o._origen}-${o.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
               <span>
-                {o.concepto || o.tipo || o.categoria || "Ingreso"}{" "}
-                {o.concepto && o.tipo && <small style={{ opacity: 0.6 }}>({o.tipo})</small>} <small style={{ opacity: 0.6 }}>{o.fecha}</small>
+                {o.tipo ? (
+                  <>
+                    {o.tipo}
+                    {o.concepto && ` (${o.concepto})`}
+                  </>
+                ) : (
+                  o.concepto || o.categoria || "Ingreso"
+                )}{" "}
+                <small style={{ opacity: 0.6 }}>{o.fecha}</small>
               </span>
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ color: "#4FD1A5" }}>{fmtPesos(o.monto)}</span>
