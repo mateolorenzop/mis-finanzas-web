@@ -131,13 +131,13 @@ export default function DashboardLayout({ children }) {
     <MesContext.Provider value={ctxValue}>
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "16px 16px 60px", fontFamily: "sans-serif" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
-          <h1 style={{ fontSize: 20, margin: 0 }}>Mis finanzas</h1>
+          <h1 style={{ fontSize: 20, margin: 0 }}>FP</h1>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {mes && (
               <select
                 value={mesId}
                 onChange={(e) => setMesId(e.target.value)}
-                style={{ background: "#182B22", color: "#EFE9DA", border: "1px solid #2B4137", borderRadius: 4, padding: "6px 8px", fontSize: 13 }}
+                style={{ background: "#142440", color: "#E7ECF7", border: "1px solid #26385C", borderRadius: 4, padding: "6px 8px", fontSize: 13 }}
               >
                 {meses.map((m) => (
                   <option key={m.id} value={m.id}>
@@ -150,28 +150,28 @@ export default function DashboardLayout({ children }) {
               <button
                 onClick={() => setConfirmandoBorrar(true)}
                 title="Borrar este mes"
-                style={{ background: "none", border: "none", color: "#93A99B", cursor: "pointer", fontSize: 13 }}
+                style={{ background: "none", border: "none", color: "#8C9EC9", cursor: "pointer", fontSize: 13 }}
               >
                 🗑
               </button>
             )}
             {mes && confirmandoBorrar && (
               <span style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}>
-                <span style={{ color: "#D2A94C" }}>¿Borrar {formatoCorto(mes.periodo)}?</span>
+                <span style={{ color: "#D2A94C" }}>¿Borrar {formatoCorto(mes.periodo)}?</span>{" "}
                 <button onClick={borrarMesActual} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>Sí</button>
-                <button onClick={() => setConfirmandoBorrar(false)} style={{ background: "none", border: "none", color: "#93A99B", cursor: "pointer" }}>No</button>
+                <button onClick={() => setConfirmandoBorrar(false)} style={{ background: "none", border: "none", color: "#8C9EC9", cursor: "pointer" }}>No</button>
               </span>
             )}
-            <Link href="/dashboard/instalar" style={{ color: "#93A99B", fontSize: 12, textDecoration: "underline" }}>
+            <Link href="/dashboard/instalar" style={{ color: "#8C9EC9", fontSize: 12, textDecoration: "underline" }}>
               Instalar app
             </Link>
-            <button onClick={cerrarSesion} style={{ background: "none", border: "none", color: "#93A99B", textDecoration: "underline", cursor: "pointer", fontSize: 13 }}>
+            <button onClick={cerrarSesion} style={{ background: "none", border: "none", color: "#8C9EC9", textDecoration: "underline", cursor: "pointer", fontSize: 13 }}>
               Salir
             </button>
           </div>
         </div>
 
-        <nav style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 20, borderBottom: "1px solid #2B4137", paddingBottom: 8 }}>
+        <nav style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 20, borderBottom: "1px solid #26385C", paddingBottom: 8 }}>
           {TABS.map((t) => {
             const activo = pathname === t.href;
             return (
@@ -183,8 +183,8 @@ export default function DashboardLayout({ children }) {
                   padding: "6px 10px",
                   borderRadius: 4,
                   textDecoration: "none",
-                  color: activo ? "#0F1913" : "#93A99B",
-                  background: activo ? "#7CB88D" : "transparent",
+                  color: activo ? "#071022" : "#8C9EC9",
+                  background: activo ? "#4FD1A5" : "transparent",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -215,18 +215,18 @@ function CrearPrimerMes({ onCrear }) {
   }
 
   return (
-    <div style={{ background: "#182B22", border: "1px solid #2B4137", borderRadius: 6, padding: 16, fontSize: 13 }}>
-      <p style={{ color: "#EFE9DA", marginTop: 0 }}>Todavía no creaste ningún mes de presupuesto. Elegí con cuál empezar:</p>
+    <div style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 16, fontSize: 13 }}>
+      <p style={{ color: "#E7ECF7", marginTop: 0 }}>Todavía no creaste ningún mes de presupuesto. Elegí con cuál empezar:</p>
       <input
         type="month"
         value={periodo}
         onChange={(e) => setPeriodo(e.target.value)}
-        style={{ padding: 8, background: "#132019", border: "1px solid #2B4137", color: "#EFE9DA", borderRadius: 4, marginRight: 10 }}
+        style={{ padding: 8, background: "#0B1730", border: "1px solid #26385C", color: "#E7ECF7", borderRadius: 4, marginRight: 10 }}
       />
       <button
         disabled={creando}
         onClick={crear}
-        style={{ padding: "8px 14px", background: "#7CB88D", color: "#0F1913", fontWeight: 600, border: "none", borderRadius: 4, cursor: "pointer" }}
+        style={{ padding: "8px 14px", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none", borderRadius: 4, cursor: "pointer" }}
       >
         {creando ? "Creando..." : "Crear mes"}
       </button>
