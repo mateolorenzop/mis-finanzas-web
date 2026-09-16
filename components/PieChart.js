@@ -21,7 +21,7 @@ export default function PieChart({ items, size = 220 }) {
   const total = data.reduce((s, i) => s + Number(i.value), 0);
 
   if (data.length === 0 || total <= 0) {
-    return <p style={{ color: "#93A99B", fontSize: 13 }}>No hay datos todavía para graficar.</p>;
+    return <p style={{ color: "#8C9EC9", fontSize: 13 }}>No hay datos todavía para graficar.</p>;
   }
 
   const r = size / 2;
@@ -45,7 +45,7 @@ export default function PieChart({ items, size = 220 }) {
             d={arcPath(r, r, r, a.startAngle, a.endAngle)}
             fill={a.color}
             opacity={selected == null || selected === a.name ? 1 : 0.25}
-            stroke="#132019"
+            stroke="#0B1730"
             strokeWidth={1}
             style={{ cursor: "pointer" }}
             onClick={() => setSelected(selected === a.name ? null : a.name)}
@@ -57,17 +57,17 @@ export default function PieChart({ items, size = 220 }) {
         {activo && (
           <div
             style={{
-              background: "#182B22",
-              border: "1px solid #2B4137",
+              background: "#142440",
+              border: "1px solid #26385C",
               borderRadius: 6,
               padding: 10,
               marginBottom: 10,
               fontSize: 13,
             }}
           >
-            <div style={{ fontWeight: 600, color: "#EFE9DA" }}>{activo.name}</div>
+            <div style={{ fontWeight: 600, color: "#E7ECF7" }}>{activo.name}</div>
             <div style={{ color: "#D2A94C" }}>{fmtPesos(activo.value)}</div>
-            <div style={{ color: "#93A99B" }}>{fmtPct(activo.pct)}</div>
+            <div style={{ color: "#8C9EC9" }}>{fmtPct(activo.pct)}</div>
           </div>
         )}
         <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: 12 }}>
@@ -85,8 +85,8 @@ export default function PieChart({ items, size = 220 }) {
               }}
             >
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: a.color, flexShrink: 0 }} />
-              <span style={{ color: "#EFE9DA", flex: 1 }}>{a.name}</span>
-              <span style={{ color: "#93A99B" }}>{fmtPct(a.pct)}</span>
+              <span style={{ color: "#E7ECF7", flex: 1 }}>{a.name}</span>
+              <span style={{ color: "#8C9EC9" }}>{fmtPct(a.pct)}</span>
             </li>
           ))}
         </ul>

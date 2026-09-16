@@ -6,9 +6,9 @@ const inputStyle = {
   width: "100%",
   marginBottom: 8,
   padding: 10,
-  background: "#182B22",
-  border: "1px solid #2B4137",
-  color: "#EFE9DA",
+  background: "#142440",
+  border: "1px solid #26385C",
+  color: "#E7ECF7",
   borderRadius: 4,
   boxSizing: "border-box",
 };
