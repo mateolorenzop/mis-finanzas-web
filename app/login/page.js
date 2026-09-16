@@ -8,9 +8,9 @@ const inputStyle = {
   width: "100%",
   marginBottom: 10,
   padding: 10,
-  background: "#182B22",
-  border: "1px solid #2B4137",
-  color: "#EFE9DA",
+  background: "#142440",
+  border: "1px solid #26385C",
+  color: "#E7ECF7",
   borderRadius: 4,
   boxSizing: "border-box",
 };
@@ -51,14 +51,14 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit}>
         <input type="email" placeholder="Mail" value={email} onChange={(e) => setEmail(e.target.value)} required style={inputStyle} />
         <input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required style={inputStyle} />
-        <button disabled={loading} type="submit" style={{ ...inputStyle, cursor: "pointer", background: "#7CB88D", color: "#0F1913", fontWeight: 600, border: "none" }}>
+        <button disabled={loading} type="submit" style={{ ...inputStyle, cursor: "pointer", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none" }}>
           {loading ? "Cargando..." : mode === "login" ? "Entrar" : "Crear cuenta"}
         </button>
       </form>
       {message && <p style={{ color: "#D2A94C", fontSize: 13 }}>{message}</p>}
       <button
         onClick={() => setMode(mode === "login" ? "signup" : "login")}
-        style={{ marginTop: 12, background: "none", border: "none", color: "#93A99B", textDecoration: "underline", cursor: "pointer", fontSize: 13 }}
+        style={{ marginTop: 12, background: "none", border: "none", color: "#8C9EC9", textDecoration: "underline", cursor: "pointer", fontSize: 13 }}
       >
         {mode === "login" ? "¿No tenés cuenta? Creá una" : "¿Ya tenés cuenta? Iniciá sesión"}
       </button>
