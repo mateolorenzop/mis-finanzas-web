@@ -167,8 +167,7 @@ export default function GastosVariables() {
       <div style={{ fontSize: 14, color: "#D2A94C", marginBottom: 20 }}>Total gastos variables: {fmtPesos(totales.totalGastosVariables)}</div>
 
       <h2 style={{ fontSize: 14, color: "#8C9EC9", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Gastos variables por categoría</h2>
-      <p style={{ fontSize: 11, color: "#8C9EC9", marginTop: -4, marginBottom: 8 }}>Los porcentajes son sobre tus fondos disponibles del mes.</p>
-      <PieChart items={pieItems} pctBase={totales.fondosDisponibles} />
+      <PieChart items={pieItems} />
     </div>
   );
 }
