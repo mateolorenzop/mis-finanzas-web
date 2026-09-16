@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useMes } from "../../../lib/MesContext";
-import CategoryBars from "../../../components/CategoryBars";
+import PieChart from "../../../components/PieChart";
 import { fmtPesos } from "../../../lib/format";
 import { colorFor } from "../../../lib/categorias";
 import { varItemTotal } from "../../../lib/mes";
@@ -57,7 +57,7 @@ export default function Resumen() {
         <Card label="Remanente" valor={totales.remanente} color="#7DD3FC" wide />
       </div>
 
-      <CategoryBars items={pieItems} />
+      <PieChart items={pieItems} />
 
       <div style={{ marginTop: 28, background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 14 }}>
         <p style={{ fontSize: 13, color: "#E7ECF7", marginTop: 0 }}>
