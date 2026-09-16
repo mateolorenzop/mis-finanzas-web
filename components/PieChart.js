@@ -16,9 +16,12 @@ function arcPath(cx, cy, r, startAngle, endAngle) {
 }
 
 // items: [{ name, value, color }]
-export default function PieChart({ items, size = 220 }) {
+// sortByValue: true (default) ordena las porciones de mayor a menor; false
+// respeta el orden en que vienen los items (para agruparlos por categoría).
+export default function PieChart({ items, size = 220, sortByValue = true }) {
   const [selected, setSelected] = useState(null);
-  const data = (items || []).filter((i) => Number(i.value) > 0).sort((a, b) => Number(b.value) - Number(a.value));
+  const filtrados = (items || []).filter((i) => Number(i.value) > 0);
+  const data = sortByValue ? [...filtrados].sort((a, b) => Number(b.value) - Number(a.value)) : filtrados;
   const total = data.reduce((s, i) => s + Number(i.value), 0);
 
   if (data.length === 0 || total <= 0) {
