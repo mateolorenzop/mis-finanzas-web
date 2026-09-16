@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 import { MesContext } from "../../lib/MesContext";
 import { fetchMeses, fetchMesCompleto, crearMes, crearMesSiguiente, calcularTotales, eliminarMes } from "../../lib/mes";
-import { formatoCorto, periodoActual } from "../../lib/periodo";
+import { formatoCorto, periodoActual, periodoSiguiente } from "../../lib/periodo";
 
 const TABS = [
   { href: "/dashboard/ingresos", label: "Ingresos" },
@@ -35,6 +35,8 @@ export default function DashboardLayout({ children }) {
   const [datos, setDatos] = useState(DATOS_VACIOS);
   const [loading, setLoading] = useState(true);
   const [confirmandoBorrar, setConfirmandoBorrar] = useState(false);
+  const [confirmandoNuevoMes, setConfirmandoNuevoMes] = useState(false);
+  const [creandoMes, setCreandoMes] = useState(false);
 
   const recargarMeses = useCallback(async (preferirId) => {
     const lista = await fetchMeses();
@@ -91,6 +93,17 @@ export default function DashboardLayout({ children }) {
     await recargarMeses(nuevo.id);
   }
 
+  async function confirmarNuevoMes() {
+    setCreandoMes(true);
+    try {
+      await avanzarMes();
+      setConfirmandoNuevoMes(false);
+    } catch (e) {
+      alert("No se pudo crear el mes: " + e.message);
+    }
+    setCreandoMes(false);
+  }
+
   async function borrarMesActual() {
     if (!mesId) return;
     try {
@@ -145,6 +158,30 @@ export default function DashboardLayout({ children }) {
                   </option>
                 ))}
               </select>
+            )}
+            {mes && !confirmandoNuevoMes && (
+              <button
+                onClick={() => setConfirmandoNuevoMes(true)}
+                title="Crear mes nuevo"
+                style={{ background: "none", border: "1px solid #26385C", color: "#4FD1A5", cursor: "pointer", fontSize: 12, borderRadius: 4, padding: "4px 8px" }}
+              >
+                + Nuevo mes
+              </button>
+            )}
+            {mes && confirmandoNuevoMes && (
+              <span style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}>
+                <span style={{ color: "#D2A94C" }}>¿Crear {formatoCorto(periodoSiguiente(mes.periodo))}?</span>
+                <button
+                  disabled={creandoMes}
+                  onClick={confirmarNuevoMes}
+                  style={{ background: "none", border: "none", color: "#4FD1A5", cursor: "pointer" }}
+                >
+                  {creandoMes ? "Creando..." : "Sí"}
+                </button>
+                <button onClick={() => setConfirmandoNuevoMes(false)} style={{ background: "none", border: "none", color: "#8C9EC9", cursor: "pointer" }}>
+                  No
+                </button>
+              </span>
             )}
             {mes && !confirmandoBorrar && (
               <button
