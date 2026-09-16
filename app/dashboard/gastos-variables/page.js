@@ -13,14 +13,14 @@ const TARJETA = "Tarjeta de crédito";
 export default function GastosVariables() {
   const { mes, datos, totales, recargarDatos } = useMes();
 
-  if (!mes) return <p style={{ color: "#93A99B", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
+  if (!mes) return <p style={{ color: "#8C9EC9", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
   const { gastosVariables, tarjetaMotivos, movimientosGasto } = datos;
   const normales = [
-    ...gastosVariables.filter((g) => g.categoria !== TARJETA).map((g) => ({ ...g, _origen: "gastos_variables" })),
+    ...gastosVariables.filter((g) => (g.categoria || "").trim() !== TARJETA).map((g) => ({ ...g, _origen: "gastos_variables" })),
     ...movimientosGasto.map((m) => ({ ...m, _origen: "movimientos" })),
   ].sort((a, b) => (a.fecha < b.fecha ? 1 : -1));
-  const tarjetas = gastosVariables.filter((g) => g.categoria === TARJETA);
+  const tarjetas = gastosVariables.filter((g) => (g.categoria || "").trim() === TARJETA);
 
   async function agregarNormal(item) {
     const { error } = await supabase.from("gastos_variables").insert({ ...item, mes_id: mes.id, user_id: mes.user_id });
@@ -90,14 +90,14 @@ export default function GastosVariables() {
 
   return (
     <div>
-      <p style={{ fontSize: 11, color: "#93A99B", marginTop: -4 }}>
+      <p style={{ fontSize: 11, color: "#8C9EC9", marginTop: -4 }}>
         Acá aparece lo que cargues abajo, y también lo que anotes como &quot;Gasto&quot; desde el Atajo del iPhone.
       </p>
       <NuevoGastoVariable onAgregarNormal={agregarNormal} onAgregarMotivo={agregarMotivo} />
 
       <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 12 }}>
         {normales.map((g) => (
-          <li key={`${g._origen}-${g.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #2B4137", padding: "8px 0", fontSize: 13 }}>
+          <li key={`${g._origen}-${g.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
             <span>
               <span style={{ color: colorFor(g.categoria) }}>●</span> {g.categoria || "Sin categoría"} {g.concepto && <small style={{ opacity: 0.7 }}>— {g.concepto}</small>}{" "}
               <small style={{ opacity: 0.6 }}>{g.fecha}</small>
@@ -108,24 +108,24 @@ export default function GastosVariables() {
             </span>
           </li>
         ))}
-        {normales.length === 0 && <p style={{ color: "#93A99B", fontSize: 12 }}>No cargaste gastos variables este mes.</p>}
+        {normales.length === 0 && <p style={{ color: "#8C9EC9", fontSize: 12 }}>No cargaste gastos variables este mes.</p>}
       </ul>
 
       {tarjetas.length > 0 && (
         <div style={{ marginBottom: 12 }}>
-          <h3 style={{ fontSize: 13, color: "#93A99B", marginBottom: 6 }}>Tarjetas de crédito</h3>
+          <h3 style={{ fontSize: 13, color: "#8C9EC9", marginBottom: 6 }}>Tarjetas de crédito</h3>
           {tarjetas.map((t) => {
             const motivos = tarjetaMotivos.filter((m) => m.gasto_variable_id === t.id);
             const totalTarjeta = motivos.reduce((s, m) => s + Number(m.valor_cuota || 0), 0);
             return (
-              <div key={t.id} style={{ background: "#182B22", border: "1px solid #2B4137", borderRadius: 6, padding: 10, marginBottom: 8 }}>
+              <div key={t.id} style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 10, marginBottom: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                  <strong style={{ color: "#EFE9DA" }}>{t.concepto}</strong>
+                  <strong style={{ color: "#E7ECF7" }}>{t.concepto}</strong>
                   <span style={{ color: "#C97B6B" }}>{fmtPesos(totalTarjeta)}</span>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, margin: "6px 0 0" }}>
                   {motivos.map((m) => (
-                    <li key={m.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "4px 0", borderTop: "1px dashed #2B4137" }}>
+                    <li key={m.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "4px 0", borderTop: "1px dashed #26385C" }}>
                       <span>
                         {m.motivo || "(sin motivo)"} — cuota {m.cuota_actual}/{m.cuota_total} <small style={{ opacity: 0.6 }}>{m.fecha}</small>
                       </span>
@@ -144,7 +144,7 @@ export default function GastosVariables() {
 
       <div style={{ fontSize: 14, color: "#D2A94C", marginBottom: 20 }}>Total gastos variables: {fmtPesos(totales.totalGastosVariables)}</div>
 
-      <h2 style={{ fontSize: 14, color: "#93A99B", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Gastos variables por categoría</h2>
+      <h2 style={{ fontSize: 14, color: "#8C9EC9", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Gastos variables por categoría</h2>
       <PieChart items={pieItems} />
     </div>
   );
@@ -185,7 +185,7 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
   }
 
   return (
-    <div style={{ background: "#182B22", border: "1px solid #2B4137", borderRadius: 6, padding: 12, marginBottom: 16 }}>
+    <div style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 12, marginBottom: 16 }}>
       <select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={inputStyle}>
         {CATEGORIAS.map((c) => (
           <option key={c} value={c}>{c}</option>
@@ -202,7 +202,7 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
             ))}
           </select>
           <input placeholder="Concepto (opcional)" value={concepto} onChange={(e) => setConcepto(e.target.value)} style={inputStyle} />
-          <button type="submit" style={{ ...inputStyle, cursor: "pointer", background: "#7CB88D", color: "#0F1913", fontWeight: 600, border: "none", marginBottom: 0 }}>
+          <button type="submit" style={{ ...inputStyle, cursor: "pointer", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none", marginBottom: 0 }}>
             Agregar gasto
           </button>
         </form>
@@ -220,7 +220,7 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
           <button
             type="button"
             onClick={() => setMotivo("Impuesto de sellos")}
-            style={{ fontSize: 11, color: "#93A99B", background: "none", border: "1px dashed #2B4137", borderRadius: 4, padding: "4px 8px", cursor: "pointer", marginBottom: 8 }}
+            style={{ fontSize: 11, color: "#8C9EC9", background: "none", border: "1px dashed #26385C", borderRadius: 4, padding: "4px 8px", cursor: "pointer", marginBottom: 8 }}
           >
             + agregar impuesto de sellos
           </button>
@@ -244,7 +244,7 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
             />
           </div>
           <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
-          <button type="submit" style={{ ...inputStyle, cursor: "pointer", background: "#7CB88D", color: "#0F1913", fontWeight: 600, border: "none", marginBottom: 0 }}>
+          <button type="submit" style={{ ...inputStyle, cursor: "pointer", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none", marginBottom: 0 }}>
             Agregar compra con tarjeta
           </button>
         </form>
