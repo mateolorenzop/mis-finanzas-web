@@ -1,12 +1,12 @@
 {
-  "name": "Mis finanzas",
-  "short_name": "Finanzas",
+  "name": "FP",
+  "short_name": "FP",
   "description": "Ingresos y gastos personales",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#132019",
-  "theme_color": "#132019",
+  "background_color": "#0B1730",
+  "theme_color": "#0B1730",
   "orientation": "portrait",
   "icons": [
     {
