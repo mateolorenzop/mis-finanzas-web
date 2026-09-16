@@ -43,6 +43,19 @@ export default function Ingresos() {
     await recargarDatos();
   }
 
+  function nombreIngreso(o) {
+    if (o.tipo && o.concepto) return `${o.tipo} — ${o.concepto}`;
+    if (o.tipo) return o.tipo;
+    return o.concepto || o.categoria || "Ingreso";
+  }
+
+  function claveOrdenTipo(o) {
+    const idx = TIPOS_INGRESO.indexOf(o.tipo);
+    return idx === -1 ? TIPOS_INGRESO.length : idx;
+  }
+
+  const ingresosOrdenados = [...ingresos].sort((a, b) => claveOrdenTipo(a) - claveOrdenTipo(b));
+
   const pieItems = [
     {
       name: "Honorarios",
@@ -50,7 +63,7 @@ export default function Ingresos() {
       color: colorFor("Honorarios"),
     },
     { name: "Remanente del mes anterior", value: Number(mes.remanente_anterior || 0), color: colorFor("Remanente del mes anterior") },
-    ...ingresos.map((o) => ({ name: o.concepto || o.tipo || "Ingreso", value: Number(o.monto || 0), color: colorFor(o.concepto || o.id) })),
+    ...ingresosOrdenados.map((o) => ({ name: nombreIngreso(o), value: Number(o.monto || 0), color: colorFor(nombreIngreso(o)) })),
   ];
 
   return (
@@ -110,7 +123,7 @@ export default function Ingresos() {
       </Seccion>
 
       <Seccion titulo="Distribución de ingresos">
-        <PieChart items={pieItems} />
+        <PieChart items={pieItems} sortByValue={false} />
       </Seccion>
 
       <div style={{ fontSize: 14, color: "#D2A94C", marginTop: 12 }}>Fondos disponibles: {fmtPesos(totales.fondosDisponibles)}</div>
