@@ -5,7 +5,7 @@ import { supabase } from "../../../lib/supabaseClient";
 import MoneyInput, { inputStyle } from "../../../components/MoneyInput";
 import PieChart from "../../../components/PieChart";
 import { fmtPesos, fmtPct } from "../../../lib/format";
-import { colorFor, CATEGORIAS, BANCOS, FORMAS_PAGO, BANCOS_CON_RED, REDES_TARJETA } from "../../../lib/categorias";
+import { colorFor, categoriaCanonica, CATEGORIAS, BANCOS, FORMAS_PAGO, BANCOS_CON_RED, REDES_TARJETA } from "../../../lib/categorias";
 import { varItemTotal, fetchTarjetasPorPeriodo } from "../../../lib/mes";
 import { periodoAnterior } from "../../../lib/periodo";
 
@@ -90,10 +90,11 @@ export default function GastosVariables() {
   const totalesPorCategoria = {};
   for (const g of gastosVariables) {
     const t = varItemTotal(g, tarjetaMotivos);
-    totalesPorCategoria[g.categoria] = (totalesPorCategoria[g.categoria] || 0) + t;
+    const cat = categoriaCanonica(g.categoria);
+    totalesPorCategoria[cat] = (totalesPorCategoria[cat] || 0) + t;
   }
   for (const m of movimientosGasto) {
-    const cat = m.categoria || "Otro";
+    const cat = categoriaCanonica(m.categoria);
     totalesPorCategoria[cat] = (totalesPorCategoria[cat] || 0) + Number(m.monto || 0);
   }
   const pieItems = Object.entries(totalesPorCategoria).map(([categoria, value]) => ({
@@ -110,10 +111,13 @@ export default function GastosVariables() {
       <NuevoGastoVariable onAgregarNormal={agregarNormal} onAgregarMotivo={agregarMotivo} />
 
       <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 12 }}>
-        {normales.map((g) => (
+        {normales.map((g) => {
+          const cat = categoriaCanonica(g.categoria);
+          const detalle = [g.concepto, g.forma].filter(Boolean).join(" · ");
+          return (
           <li key={`${g._origen}-${g.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
             <span>
-              <span style={{ color: colorFor(g.categoria) }}>●</span> {g.categoria || "Sin categoría"} {g.concepto && <small style={{ opacity: 0.7 }}>— {g.concepto}</small>}{" "}
+              <span style={{ color: colorFor(cat) }}>●</span> {cat} {detalle && <small style={{ opacity: 0.7 }}>— {detalle}</small>}{" "}
               <small style={{ opacity: 0.6 }}>{g.fecha}</small>
             </span>
             <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -121,7 +125,8 @@ export default function GastosVariables() {
               <button onClick={() => eliminarNormal(g)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
             </span>
           </li>
-        ))}
+          );
+        })}
         {normales.length === 0 && <p style={{ color: "#8C9EC9", fontSize: 12 }}>No cargaste gastos variables este mes.</p>}
       </ul>
 
