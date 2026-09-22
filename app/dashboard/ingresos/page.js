@@ -99,25 +99,23 @@ export default function Ingresos() {
         </p>
         <OtroIngresoForm onAgregar={agregarOtroIngreso} />
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {ingresos.map((o) => (
-            <li key={`${o._origen}-${o.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
-              <span>
-                {o.tipo ? (
-                  <>
-                    {o.tipo}
-                    {o.concepto && ` (${o.concepto})`}
-                  </>
-                ) : (
-                  o.concepto || o.categoria || "Ingreso"
-                )}{" "}
-                <small style={{ opacity: 0.6 }}>{o.fecha}</small>
-              </span>
-              <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ color: "#4FD1A5" }}>{fmtPesos(o.monto)}</span>
-                <button onClick={() => eliminarIngreso(o)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
-              </span>
-            </li>
-          ))}
+          {ingresos.map((o) => {
+            const esOtroIngreso = o._origen === "otros_ingresos";
+            const motivo = esOtroIngreso ? o.tipo || "Ingreso" : o.categoria || "Ingreso";
+            const detalle = [o.concepto, o.forma].filter(Boolean).join(" · ");
+            return (
+              <li key={`${o._origen}-${o.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
+                <span>
+                  <span style={{ color: colorFor(motivo) }}>●</span> {motivo} {detalle && <small style={{ opacity: 0.7 }}>— {detalle}</small>}{" "}
+                  <small style={{ opacity: 0.6 }}>{o.fecha}</small>
+                </span>
+                <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <span style={{ color: "#4FD1A5" }}>{fmtPesos(o.monto)}</span>
+                  <button onClick={() => eliminarIngreso(o)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
+                </span>
+              </li>
+            );
+          })}
           {ingresos.length === 0 && <p style={{ color: "#8C9EC9", fontSize: 12 }}>No cargaste ingresos este mes.</p>}
         </ul>
       </Seccion>
