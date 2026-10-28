@@ -20,6 +20,7 @@ function calcularSellos(valor) {
 export default function GastosVariables() {
   const { mes, datos, totales, recargarDatos } = useMes();
   const [tarjetasAnteriores, setTarjetasAnteriores] = useState([]);
+  const [editando, setEditando] = useState(null);
 
   useEffect(() => {
     if (!mes) return;
@@ -41,7 +42,16 @@ export default function GastosVariables() {
     await recargarDatos();
   }
 
+  async function guardarEdicion(item, campos) {
+    const tabla = item._origen === "movimientos" ? "movimientos" : "gastos_variables";
+    const { error } = await supabase.from(tabla).update(campos).eq("id", item.id);
+    if (error) { alert(error.message); return; }
+    setEditando(null);
+    await recargarDatos();
+  }
+
   async function eliminarNormal(item) {
+    if (!window.confirm("¿Seguro que querés eliminar este movimiento?")) return;
     const tabla = item._origen === "movimientos" ? "movimientos" : "gastos_variables";
     const { error } = await supabase.from(tabla).delete().eq("id", item.id);
     if (error) { alert(error.message); return; }
@@ -82,6 +92,7 @@ export default function GastosVariables() {
   }
 
   async function eliminarMotivo(motivoId, gastoVariableId) {
+    if (!window.confirm("¿Seguro que querés eliminar este movimiento?")) return;
     const { error } = await supabase.from("tarjeta_motivos").delete().eq("id", motivoId);
     if (error) { alert(error.message); return; }
     const restantes = tarjetaMotivos.filter((m) => m.gasto_variable_id === gastoVariableId && m.id !== motivoId);
@@ -124,14 +135,19 @@ export default function GastosVariables() {
         {normales.map((g) => {
           const cat = categoriaCanonica(g.categoria);
           const detalle = [g.concepto, g.forma].filter(Boolean).join(" · ");
+          const clave = `${g._origen}-${g.id}`;
+          if (editando === clave) {
+            return <EditorGasto key={clave} g={g} onGuardar={(campos) => guardarEdicion(g, campos)} onCancelar={() => setEditando(null)} />;
+          }
           return (
-          <li key={`${g._origen}-${g.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
+          <li key={clave} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
             <span>
               <span style={{ color: colorFor(cat) }}>●</span> {cat} {detalle && <small style={{ opacity: 0.7 }}>— {detalle}</small>}{" "}
               <small style={{ opacity: 0.6 }}>{g.fecha}</small>
             </span>
             <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <span style={{ color: "#C97B6B" }}>{fmtPesos(g.monto)}</span>
+              <button onClick={() => setEditando(clave)} title="Editar" style={{ background: "none", border: "none", color: "#8C9EC9", cursor: "pointer" }}>✎</button>
               <button onClick={() => eliminarNormal(g)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
             </span>
           </li>
@@ -184,6 +200,50 @@ export default function GastosVariables() {
       <h2 style={{ fontSize: 14, color: "#8C9EC9", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Gastos variables por categoría</h2>
       <PieChart items={pieItems} />
     </div>
+  );
+}
+
+function EditorGasto({ g, onGuardar, onCancelar }) {
+  const esMov = g._origen === "movimientos";
+  const [categoria, setCategoria] = useState(categoriaCanonica(g.categoria));
+  const [monto, setMonto] = useState(Number(g.monto || 0));
+  const [fecha, setFecha] = useState(g.fecha || "");
+  const [forma, setForma] = useState(g.forma || "Efectivo");
+  const [concepto, setConcepto] = useState(g.concepto || "");
+
+  function guardar() {
+    const campos = { categoria, monto: Number(monto), fecha: fecha || null };
+    if (!esMov) {
+      campos.forma = forma;
+      campos.concepto = concepto || null;
+    }
+    onGuardar(campos);
+  }
+
+  return (
+    <li style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 10, marginBottom: 8, listStyle: "none" }}>
+      <select value={categoria} onChange={(e) => setCategoria(e.target.value)} style={inputStyle}>
+        {CATEGORIAS.filter((c) => c !== TARJETA).map((c) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
+      </select>
+      <MoneyInput value={monto} onChange={setMonto} placeholder="Monto" />
+      <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
+      {!esMov && (
+        <>
+          <select value={forma} onChange={(e) => setForma(e.target.value)} style={inputStyle}>
+            {FORMAS_PAGO.map((f) => (
+              <option key={f} value={f}>{f}</option>
+            ))}
+          </select>
+          <input placeholder="Concepto (opcional)" value={concepto} onChange={(e) => setConcepto(e.target.value)} style={inputStyle} />
+        </>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={guardar} style={{ ...inputStyle, cursor: "pointer", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none", marginBottom: 0 }}>Guardar</button>
+        <button onClick={onCancelar} style={{ ...inputStyle, cursor: "pointer", marginBottom: 0 }}>Cancelar</button>
+      </div>
+    </li>
   );
 }
 
