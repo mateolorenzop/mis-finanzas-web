@@ -91,6 +91,13 @@ export default function GastosVariables() {
     await recargarDatos();
   }
 
+  async function guardarMotivo(id, campos) {
+    const { error } = await supabase.from("tarjeta_motivos").update(campos).eq("id", id);
+    if (error) { alert(error.message); return; }
+    setEditando(null);
+    await recargarDatos();
+  }
+
   async function eliminarMotivo(motivoId, gastoVariableId) {
     if (!window.confirm("¿Seguro que querés eliminar este movimiento?")) return;
     const { error } = await supabase.from("tarjeta_motivos").delete().eq("id", motivoId);
@@ -177,13 +184,16 @@ export default function GastosVariables() {
                   </span>
                 </div>
                 <ul style={{ listStyle: "none", padding: 0, margin: "6px 0 0" }}>
-                  {motivos.map((m) => (
+                  {motivos.map((m) => editando === `motivo-${m.id}` ? (
+                    <EditorMotivo key={m.id} m={m} onGuardar={(campos) => guardarMotivo(m.id, campos)} onCancelar={() => setEditando(null)} />
+                  ) : (
                     <li key={m.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, padding: "4px 0", borderTop: "1px dashed #26385C" }}>
                       <span>
                         {m.motivo || "(sin motivo)"} — cuota {m.cuota_actual}/{m.cuota_total} <small style={{ opacity: 0.6 }}>{m.fecha}</small>
                       </span>
                       <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
                         <span style={{ color: "#D2A94C" }}>{fmtPesos(m.valor_cuota)}</span>
+                        <button onClick={() => setEditando(`motivo-${m.id}`)} title="Editar" style={{ background: "none", border: "none", color: "#8C9EC9", cursor: "pointer" }}>✎</button>
                         <button onClick={() => eliminarMotivo(m.id, t.id)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
                       </span>
                     </li>
@@ -200,6 +210,40 @@ export default function GastosVariables() {
       <h2 style={{ fontSize: 14, color: "#8C9EC9", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 8 }}>Gastos variables por categoría</h2>
       <PieChart items={pieItems} />
     </div>
+  );
+}
+
+function EditorMotivo({ m, onGuardar, onCancelar }) {
+  const [motivo, setMotivo] = useState(m.motivo || "");
+  const [valor, setValor] = useState(Number(m.valor_cuota || 0));
+  const [cuotaActual, setCuotaActual] = useState(m.cuota_actual || 1);
+  const [cuotaTotal, setCuotaTotal] = useState(m.cuota_total || 1);
+  const [fecha, setFecha] = useState(m.fecha || "");
+
+  function guardar() {
+    onGuardar({
+      motivo,
+      valor_cuota: Number(valor),
+      cuota_actual: Number(cuotaActual) || 1,
+      cuota_total: Number(cuotaTotal) || 1,
+      fecha: fecha || null,
+    });
+  }
+
+  return (
+    <li style={{ background: "#0B1730", border: "1px solid #26385C", borderRadius: 6, padding: 10, margin: "6px 0", listStyle: "none" }}>
+      <input placeholder="Motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} style={inputStyle} />
+      <MoneyInput value={valor} onChange={setValor} placeholder="Valor por cuota" />
+      <div style={{ display: "flex", gap: 8 }}>
+        <input type="number" min={1} placeholder="Cuota actual" value={cuotaActual} onChange={(e) => setCuotaActual(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+        <input type="number" min={1} placeholder="Cuota total" value={cuotaTotal} onChange={(e) => setCuotaTotal(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
+      </div>
+      <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={guardar} style={{ ...inputStyle, cursor: "pointer", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none", marginBottom: 0 }}>Guardar</button>
+        <button onClick={onCancelar} style={{ ...inputStyle, cursor: "pointer", marginBottom: 0 }}>Cancelar</button>
+      </div>
+    </li>
   );
 }
 
