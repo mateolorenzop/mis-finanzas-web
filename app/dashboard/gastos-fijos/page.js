@@ -42,6 +42,7 @@ export default function GastosFijos() {
   }
 
   async function eliminar(id) {
+    if (!window.confirm("¿Seguro que querés eliminar este movimiento?")) return;
     const { error } = await supabase.from("gastos_fijos").delete().eq("id", id);
     if (error) { alert(error.message); return; }
     await recargarDatos();
