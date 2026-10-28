@@ -10,6 +10,7 @@ import { periodoAnterior, formatoLargo } from "../../../lib/periodo";
 
 export default function Ingresos() {
   const { mes, datos, totales, recargarMeses, recargarDatos } = useMes();
+  const [editando, setEditando] = useState(null);
 
   if (!mes) return <p style={{ color: "#8C9EC9", fontSize: 13 }}>Creá un mes primero (arriba).</p>;
 
@@ -36,7 +37,16 @@ export default function Ingresos() {
     await recargarDatos();
   }
 
+  async function guardarEdicion(item, campos) {
+    const tabla = item._origen === "movimientos" ? "movimientos" : "otros_ingresos";
+    const { error } = await supabase.from(tabla).update(campos).eq("id", item.id);
+    if (error) { alert(error.message); return; }
+    setEditando(null);
+    await recargarDatos();
+  }
+
   async function eliminarIngreso(item) {
+    if (!window.confirm("¿Seguro que querés eliminar este movimiento?")) return;
     const tabla = item._origen === "movimientos" ? "movimientos" : "otros_ingresos";
     const { error } = await supabase.from(tabla).delete().eq("id", item.id);
     if (error) { alert(error.message); return; }
@@ -103,14 +113,19 @@ export default function Ingresos() {
             const esOtroIngreso = o._origen === "otros_ingresos";
             const motivo = esOtroIngreso ? o.tipo || "Ingreso" : o.categoria || "Ingreso";
             const detalle = [o.concepto, o.forma].filter(Boolean).join(" · ");
+            const clave = `${o._origen}-${o.id}`;
+            if (editando === clave) {
+              return <EditorIngreso key={clave} o={o} onGuardar={(campos) => guardarEdicion(o, campos)} onCancelar={() => setEditando(null)} />;
+            }
             return (
-              <li key={`${o._origen}-${o.id}`} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
+              <li key={clave} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
                 <span>
                   <span style={{ color: colorFor(motivo) }}>●</span> {motivo} {detalle && <small style={{ opacity: 0.7 }}>— {detalle}</small>}{" "}
                   <small style={{ opacity: 0.6 }}>{o.fecha}</small>
                 </span>
                 <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
                   <span style={{ color: "#4FD1A5" }}>{fmtPesos(o.monto)}</span>
+                  <button onClick={() => setEditando(clave)} title="Editar" style={{ background: "none", border: "none", color: "#8C9EC9", cursor: "pointer" }}>✎</button>
                   <button onClick={() => eliminarIngreso(o)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
                 </span>
               </li>
@@ -126,6 +141,54 @@ export default function Ingresos() {
 
       <div style={{ fontSize: 14, color: "#D2A94C", marginTop: 12 }}>Fondos disponibles: {fmtPesos(totales.fondosDisponibles)}</div>
     </div>
+  );
+}
+
+function EditorIngreso({ o, onGuardar, onCancelar }) {
+  const esMov = o._origen === "movimientos";
+  const [tipo, setTipo] = useState(TIPOS_INGRESO.includes(o.tipo) ? o.tipo : "Otro");
+  const [motivo, setMotivo] = useState(o.categoria || "");
+  const [concepto, setConcepto] = useState(o.concepto || "");
+  const [monto, setMonto] = useState(Number(o.monto || 0));
+  const [fecha, setFecha] = useState(o.fecha || "");
+  const [forma, setForma] = useState(o.forma || "Transferencia");
+
+  function guardar() {
+    if (esMov) {
+      onGuardar({ categoria: motivo || "Ingreso", monto: Number(monto), fecha: fecha || null });
+    } else {
+      onGuardar({ tipo, concepto: concepto || "", monto: Number(monto), fecha: fecha || null, forma });
+    }
+  }
+
+  return (
+    <li style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 10, marginBottom: 8, listStyle: "none" }}>
+      {esMov ? (
+        <input placeholder="Motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} style={inputStyle} />
+      ) : (
+        <>
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)} style={inputStyle}>
+            {TIPOS_INGRESO.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <input placeholder="Concepto (opcional)" value={concepto} onChange={(e) => setConcepto(e.target.value)} style={inputStyle} />
+        </>
+      )}
+      <MoneyInput value={monto} onChange={setMonto} placeholder="Monto" />
+      <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
+      {!esMov && (
+        <select value={forma} onChange={(e) => setForma(e.target.value)} style={inputStyle}>
+          {FORMAS_PAGO_INGRESOS.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+      )}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={guardar} style={{ ...inputStyle, cursor: "pointer", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none", marginBottom: 0 }}>Guardar</button>
+        <button onClick={onCancelar} style={{ ...inputStyle, cursor: "pointer", marginBottom: 0 }}>Cancelar</button>
+      </div>
+    </li>
   );
 }
 
