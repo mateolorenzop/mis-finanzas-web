@@ -10,6 +10,12 @@ import { varItemTotal, fetchTarjetasPorPeriodo } from "../../../lib/mes";
 import { periodoAnterior } from "../../../lib/periodo";
 
 const TARJETA = "Tarjeta de crédito";
+const TASA_SELLOS = 0.012;
+const MOTIVO_SELLOS = "Impuesto de sellos";
+
+function calcularSellos(valor) {
+  return Math.round(Number(valor || 0) * TASA_SELLOS * 100) / 100;
+}
 
 export default function GastosVariables() {
   const { mes, datos, totales, recargarDatos } = useMes();
@@ -56,17 +62,21 @@ export default function GastosVariables() {
       if (error) { alert(error.message); return; }
       itemId = data.id;
     }
-    const { error: errM } = await supabase.from("tarjeta_motivos").insert({
+    const base = {
       gasto_variable_id: itemId,
       user_id: mes.user_id,
       tarjeta: banco,
       tarjeta_otro: banco === "Otro" ? bancoOtro : null,
-      motivo,
-      valor_cuota: Number(valorCuota),
       cuota_actual: Number(cuotaActual) || 1,
       cuota_total: Number(cuotaTotal) || 1,
       fecha: fecha || null,
-    });
+    };
+    const filas = [{ ...base, motivo, valor_cuota: Number(valorCuota) }];
+    const esSellos = (motivo || "").trim().toLowerCase() === MOTIVO_SELLOS.toLowerCase();
+    if (!esSellos) {
+      filas.push({ ...base, motivo: MOTIVO_SELLOS, valor_cuota: calcularSellos(valorCuota) });
+    }
+    const { error: errM } = await supabase.from("tarjeta_motivos").insert(filas);
     if (errM) { alert(errM.message); return; }
     await recargarDatos();
   }
@@ -252,14 +262,12 @@ function NuevoGastoVariable({ onAgregarNormal, onAgregarMotivo }) {
             </select>
           )}
           <input placeholder="Motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} style={inputStyle} />
-          <button
-            type="button"
-            onClick={() => setMotivo("Impuesto de sellos")}
-            style={{ fontSize: 11, color: "#8C9EC9", background: "none", border: "1px dashed #26385C", borderRadius: 4, padding: "4px 8px", cursor: "pointer", marginBottom: 8 }}
-          >
-            + agregar impuesto de sellos
-          </button>
           <MoneyInput value={valorCuota} onChange={setValorCuota} placeholder="Valor por cuota" />
+          {Number(valorCuota) > 0 && (motivo || "").trim().toLowerCase() !== MOTIVO_SELLOS.toLowerCase() && (
+            <p style={{ fontSize: 12, color: "#8C9EC9", marginTop: -4 }}>
+              + Impuesto de sellos (1,2%): {fmtPesos(calcularSellos(valorCuota))} — se agrega solo
+            </p>
+          )}
           <div style={{ display: "flex", gap: 8 }}>
             <input
               type="number"
