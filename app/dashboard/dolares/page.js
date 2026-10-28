@@ -14,6 +14,7 @@ export default function Dolares() {
   const [actual, setActual] = useState(null);
   const [anterior, setAnterior] = useState(null);
   const [errorCotiz, setErrorCotiz] = useState(false);
+  const [editando, setEditando] = useState(null);
   const actualRef = useRef(null);
 
   useEffect(() => {
@@ -48,6 +49,13 @@ export default function Dolares() {
   async function agregar(item) {
     const { error } = await supabase.from("compras_dolares").insert({ ...item, mes_id: mes.id, user_id: mes.user_id });
     if (error) { alert(error.message); return; }
+    await recargarDatos();
+  }
+
+  async function guardarEdicion(id, campos) {
+    const { error } = await supabase.from("compras_dolares").update(campos).eq("id", id);
+    if (error) { alert(error.message); return; }
+    setEditando(null);
     await recargarDatos();
   }
 
@@ -87,6 +95,9 @@ export default function Dolares() {
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {compras.map((c) => {
           const precio = Number(c.cantidad_dolares) > 0 ? Number(c.monto_pesos) / Number(c.cantidad_dolares) : 0;
+          if (editando === c.id) {
+            return <EditorCompra key={c.id} c={c} precio={precio} onGuardar={(campos) => guardarEdicion(c.id, campos)} onCancelar={() => setEditando(null)} />;
+          }
           return (
             <li key={c.id} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #26385C", padding: "8px 0", fontSize: 13 }}>
               <span>
@@ -96,6 +107,7 @@ export default function Dolares() {
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ color: "#D2A94C" }}>{fmtPesos(c.monto_pesos)}</span>
                 <span style={{ color: "#4FD1A5" }}>US$ {fmtNumero(c.cantidad_dolares)}</span>
+                <button onClick={() => setEditando(c.id)} title="Editar" style={{ background: "none", border: "none", color: "#8C9EC9", cursor: "pointer" }}>✎</button>
                 <button onClick={() => eliminar(c.id)} style={{ background: "none", border: "none", color: "#C97B6B", cursor: "pointer" }}>×</button>
               </span>
             </li>
@@ -125,6 +137,38 @@ function PrecioConFlecha({ label, valor, anterior, color }) {
       {label} {fmtPesos(valor)}
       {flecha}
     </div>
+  );
+}
+
+function EditorCompra({ c, precio, onGuardar, onCancelar }) {
+  const [fecha, setFecha] = useState(c.fecha || "");
+  const [destino, setDestino] = useState(c.destino || DESTINOS[0]);
+  const [montoPesos, setMontoPesos] = useState(Number(c.monto_pesos || 0));
+  const [precioDolar, setPrecioDolar] = useState(Math.round(precio * 100) / 100);
+
+  const cantidad = Number(precioDolar) > 0 ? Number(montoPesos) / Number(precioDolar) : 0;
+
+  function guardar() {
+    if (!montoPesos || !precioDolar) return;
+    onGuardar({ fecha: fecha || null, destino, monto_pesos: Number(montoPesos), cantidad_dolares: cantidad });
+  }
+
+  return (
+    <li style={{ background: "#142440", border: "1px solid #26385C", borderRadius: 6, padding: 10, marginBottom: 8, listStyle: "none" }}>
+      <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} style={inputStyle} />
+      <select value={destino} onChange={(e) => setDestino(e.target.value)} style={inputStyle}>
+        {[...new Set([...DESTINOS, destino])].map((d) => (
+          <option key={d} value={d}>{d}</option>
+        ))}
+      </select>
+      <MoneyInput value={montoPesos} onChange={setMontoPesos} placeholder="Monto en pesos" />
+      <MoneyInput value={precioDolar} onChange={setPrecioDolar} placeholder="Precio del dólar" />
+      {cantidad > 0 && <p style={{ fontSize: 12, color: "#4FD1A5", marginTop: -4 }}>Te da: US$ {fmtNumero(cantidad)}</p>}
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={guardar} style={{ ...inputStyle, cursor: "pointer", background: "#4FD1A5", color: "#071022", fontWeight: 600, border: "none", marginBottom: 0 }}>Guardar</button>
+        <button onClick={onCancelar} style={{ ...inputStyle, cursor: "pointer", marginBottom: 0 }}>Cancelar</button>
+      </div>
+    </li>
   );
 }
 
